@@ -35,14 +35,12 @@
             cursor: pointer;
             border-radius: 10px;
             width: 100%;
-            transition: transform 0.1s ease, opacity 0.2s ease;
+            transition: transform 0.1s ease;
         }
         .btn:active { transform: scale(0.98); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-on { background-color: #2ecc71; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); }
         .btn-off { background-color: #e74c3c; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3); }
         .btn-status { background-color: #34495e; box-shadow: 0 4px 10px rgba(52, 73, 94, 0.3); }
-        #loading { display: none; color: #3498db; font-weight: bold; margin-top: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -51,61 +49,21 @@
         <h2>GAMODA CONTROL</h2>
         <p>Hệ thống điều khiển thiết bị Mini App</p>
         
-        <!-- Các nút bấm điều khiển gọi trực tiếp API ẩn -->
-        <button class="btn btn-on" id="btn-on" onclick="sendCmdDirect('/on')">💡 BẬT THIẾT BỊ</button>
-        <button class="btn btn-off" id="btn-off" onclick="sendCmdDirect('/off')">🔌 TẮT THIẾT BỊ</button>
-        <button class="btn btn-status" id="btn-status" onclick="sendCmdDirect('/status')">📊 KIỂM TRA TRẠNG THÁI</button>
-        
-        <!-- Hiển thị trạng thái gửi lệnh -->
-        <div id="loading">⏳ Đang gửi lệnh tới hệ thống...</div>
+        <!-- Gọi hàm gửi dữ liệu chuẩn của Telegram -->
+        <button class="btn btn-on" onclick="sendCmd('on')">💡 BẬT THIẾT BỊ</button>
+        <button class="btn btn-off" onclick="sendCmd('off')">🔌 TẮT THIẾT BỊ</button>
+        <button class="btn btn-status" onclick="sendCmd('status')">📊 KIỂM TRA TRẠNG THÁI</button>
     </div>
 
     <script>
         // Khởi tạo ứng dụng Telegram Web App
         const tg = window.Telegram.WebApp;
         tg.ready(); 
-        tg.expand(); // Ép ứng dụng trượt mở rộng tối đa màn hình cho đẹp
+        tg.expand(); // Mở rộng tối đa màn hình
 
-        // CẤU HÌNH THÔNG TIN CHATBOT CỦA CẬU CHỦ
-        const BOT_TOKEN = "8548790171:AAHQvQmOUyv54ZfkT-5eboqRFR-90MHPu90"; // <-- Điền đầy đủ Token Bot của cậu chủ vào đây
-        const CHAT_ID = "1054833960";           // Chat ID Telegram của cậu chủ
-
-        // Hàm gọi API trực tiếp không qua hệ thống sendData mặc định để GIỮ APP LUÔN MỞ
-        function sendCmdDirect(command) {
-            const loadingText = document.getElementById("loading");
-            const buttons = document.querySelectorAll(".btn");
-            
-            // Hiển thị trạng thái đang xử lý và khóa nút bấm tạm thời
-            loadingText.style.display = "block";
-            loadingText.innerText = "⏳ Đang gửi lệnh tới hệ thống...";
-            loadingText.style.color = "#3498db";
-            buttons.forEach(btn => btn.disabled = true);
-
-            // Khởi tạo đường link API Telegram gửi tin nhắn ngầm
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(command)}`;
-            
-            // Thực hiện gửi request ngầm lên server Telegram
-            fetch(url)
-            .then(response => {
-                if (response.ok) {
-                    loadingText.innerText = "✅ Gửi lệnh thành công!";
-                    loadingText.style.color = "#2ecc71";
-                } else {
-                    loadingText.innerText = "❌ Gửi lệnh thất bại. Kiểm tra lại Token/ChatID!";
-                    loadingText.style.color = "#e74c3c";
-                }
-            })
-            .catch(err => {
-                loadingText.innerText = "❌ Lỗi kết nối mạng: " + err;
-                loadingText.style.color = "#e74c3c";
-            })
-            .finally(() => {
-                // Mở khóa lại các nút bấm sau 1.5 giây để cậu chủ bấm tiếp lệnh khác
-                setTimeout(() => {
-                    buttons.forEach(btn => btn.disabled = false);
-                    loadingText.style.display = "none";
-                }, 1500);
-            });
+        function sendCmd(command) {
+            // Gửi dữ liệu thô vào bot, Telegram sẽ chuyển tiếp tới ESP32 qua Internet
+            tg.sendData(command);
         }
     </script>
 </body>
