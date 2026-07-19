@@ -51,10 +51,10 @@
         <h2>GAMODA CONTROL</h2>
         <p>Hệ thống điều khiển thiết bị Mini App</p>
         
-        <!-- Các nút bấm điều khiển ứng dụng -->
-        <button class="btn btn-on" id="btn-on" onclick="sendCmd('/on')">💡 BẬT THIẾT BỊ</button>
-        <button class="btn btn-off" id="btn-off" onclick="sendCmd('/off')">🔌 TẮT THIẾT BỊ</button>
-        <button class="btn btn-status" id="btn-status" onclick="sendCmd('/status')">📊 KIỂM TRA TRẠNG THÁI</button>
+        <!-- Các nút bấm điều khiển gọi trực tiếp API ẩn -->
+        <button class="btn btn-on" id="btn-on" onclick="sendCmdDirect('/on')">💡 BẬT THIẾT BỊ</button>
+        <button class="btn btn-off" id="btn-off" onclick="sendCmdDirect('/off')">🔌 TẮT THIẾT BỊ</button>
+        <button class="btn btn-status" id="btn-status" onclick="sendCmdDirect('/status')">📊 KIỂM TRA TRẠNG THÁI</button>
         
         <!-- Hiển thị trạng thái gửi lệnh -->
         <div id="loading">⏳ Đang gửi lệnh tới hệ thống...</div>
@@ -64,33 +64,34 @@
         // Khởi tạo ứng dụng Telegram Web App
         const tg = window.Telegram.WebApp;
         tg.ready(); 
-        tg.expand(); // Ép ứng dụng trượt mở rộng tối đa màn hình
+        tg.expand(); // Ép ứng dụng trượt mở rộng tối đa màn hình cho đẹp
 
         // CẤU HÌNH THÔNG TIN CHATBOT CỦA CẬU CHỦ
-        const BOT_TOKEN = "8548790171:AAH8..." // <-- Cậu điền đầy đủ Token Bot của cậu vào đây
+        const BOT_TOKEN = "8548790171:AAHQvQmOUyv54ZfkT-5eboqRFR-90MHPu90"; // <-- Điền đầy đủ Token Bot của cậu chủ vào đây
         const CHAT_ID = "1054833960";           // Chat ID Telegram của cậu chủ
 
-        // Hàm xử lý gửi lệnh ngầm qua API để không bị đóng Mini App
-        function sendCmd(command) {
+        // Hàm gọi API trực tiếp không qua hệ thống sendData mặc định để GIỮ APP LUÔN MỞ
+        function sendCmdDirect(command) {
             const loadingText = document.getElementById("loading");
             const buttons = document.querySelectorAll(".btn");
             
             // Hiển thị trạng thái đang xử lý và khóa nút bấm tạm thời
             loadingText.style.display = "block";
             loadingText.innerText = "⏳ Đang gửi lệnh tới hệ thống...";
+            loadingText.style.color = "#3498db";
             buttons.forEach(btn => btn.disabled = true);
 
-            // Khởi tạo URL gọi API Telegram gửi tin nhắn ngầm
+            // Khởi tạo đường link API Telegram gửi tin nhắn ngầm
             const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(command)}`;
             
-            // Thực hiện gửi request ngầm
+            // Thực hiện gửi request ngầm lên server Telegram
             fetch(url)
             .then(response => {
                 if (response.ok) {
                     loadingText.innerText = "✅ Gửi lệnh thành công!";
                     loadingText.style.color = "#2ecc71";
                 } else {
-                    loadingText.innerText = "❌ Gửi lệnh thất bại. Vui lòng kiểm tra lại Token!";
+                    loadingText.innerText = "❌ Gửi lệnh thất bại. Kiểm tra lại Token/ChatID!";
                     loadingText.style.color = "#e74c3c";
                 }
             })
@@ -103,7 +104,6 @@
                 setTimeout(() => {
                     buttons.forEach(btn => btn.disabled = false);
                     loadingText.style.display = "none";
-                    loadingText.style.color = "#3498db"; // Trả lại màu mặc định
                 }, 1500);
             });
         }
