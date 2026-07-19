@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMODA SYSTEM CONTROL</title>
+    <!-- Nhúng thư viện Mini App chính thức của Telegram -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f7;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            color: #2c3e50;
+        }
+        .container {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        h2 { margin-top: 0; color: #2c3e50; font-size: 24px; }
+        p { color: #7f8c8d; font-size: 14px; }
+        .btn {
+            border: none;
+            color: white;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 12px 0;
+            cursor: pointer;
+            border-radius: 10px;
+            width: 100%;
+            transition: transform 0.1s ease;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-on { background-color: #2ecc71; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); }
+        .btn-off { background-color: #e74c3c; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3); }
+        .btn-status { background-color: #34495e; box-shadow: 0 4px 10px rgba(52, 73, 94, 0.3); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>GAMODA CONTROL</h2>
+        <p>Hệ thống điều khiển thiết bị Mini App</p>
+        
+        <!-- Các nút bấm điều khiển ứng dụng -->
+        <button class="btn btn-on" onclick="sendCmd('/on')">💡 BẬT THIẾT BỊ</button>
+        <button class="btn btn-off" onclick="sendCmd('/off')">🔌 TẮT THIẾT BỊ</button>
+        <button class="btn btn-status" onclick="sendCmd('/status')">📊 KIỂM TRA TRẠNG THÁI</button>
+    </div>
+
+    <script>
+        // Khởi tạo ứng dụng Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.ready(); // Báo cho Telegram biết ứng dụng đã tải xong
+        tg.expand(); // Ép ứng dụng trượt mở rộng tối đa màn hình cho đẹp
+
+        // Hàm xử lý gửi lệnh ngầm vào Telegram Chat
+        function sendCmd(command) {
+            // Gửi tin nhắn text thẳng vào cuộc trò chuyện với Bot
+            tg.sendData(command); 
+            
+            // Đóng Mini App lại ngay sau khi bấm (Cậu chủ có thể ẩn dòng này nếu muốn giữ App mở liên tục)
+            tg.close(); 
+        }
+    </script>
+</body>
+</html>
