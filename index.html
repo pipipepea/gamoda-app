@@ -24,7 +24,7 @@
             margin: 20px auto;
         }
         h2 { margin-top: 0; color: #2c3e50; font-size: 24px; }
-        p { color: #7f8c8d; font-size: 14px; }
+        p { color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
         .btn {
             border: none;
             color: white;
@@ -35,12 +35,14 @@
             cursor: pointer;
             border-radius: 10px;
             width: 100%;
-            transition: transform 0.1s ease;
+            transition: transform 0.1s ease, opacity 0.2s ease;
         }
         .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-on { background-color: #2ecc71; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); }
         .btn-off { background-color: #e74c3c; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3); }
         .btn-status { background-color: #34495e; box-shadow: 0 4px 10px rgba(52, 73, 94, 0.3); }
+        #loading { display: none; color: #3498db; font-weight: bold; margin-top: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -50,24 +52,60 @@
         <p>Hệ thống điều khiển thiết bị Mini App</p>
         
         <!-- Các nút bấm điều khiển ứng dụng -->
-        <button class="btn btn-on" onclick="sendCmd('/on')">💡 BẬT THIẾT BỊ</button>
-        <button class="btn btn-off" onclick="sendCmd('/off')">🔌 TẮT THIẾT BỊ</button>
-        <button class="btn btn-status" onclick="sendCmd('/status')">📊 KIỂM TRA TRẠNG THÁI</button>
+        <button class="btn btn-on" id="btn-on" onclick="sendCmd('/on')">💡 BẬT THIẾT BỊ</button>
+        <button class="btn btn-off" id="btn-off" onclick="sendCmd('/off')">🔌 TẮT THIẾT BỊ</button>
+        <button class="btn btn-status" id="btn-status" onclick="sendCmd('/status')">📊 KIỂM TRA TRẠNG THÁI</button>
+        
+        <!-- Hiển thị trạng thái gửi lệnh -->
+        <div id="loading">⏳ Đang gửi lệnh tới hệ thống...</div>
     </div>
 
     <script>
         // Khởi tạo ứng dụng Telegram Web App
         const tg = window.Telegram.WebApp;
-        tg.ready(); // Báo cho Telegram biết ứng dụng đã tải xong
-        tg.expand(); // Ép ứng dụng trượt mở rộng tối đa màn hình cho đẹp
+        tg.ready(); 
+        tg.expand(); // Ép ứng dụng trượt mở rộng tối đa màn hình
 
-        // Hàm xử lý gửi lệnh ngầm vào Telegram Chat
+        // CẤU HÌNH THÔNG TIN CHATBOT CỦA CẬU CHỦ
+        const BOT_TOKEN = "8548790171:AAH8..." // <-- Cậu điền đầy đủ Token Bot của cậu vào đây
+        const CHAT_ID = "1054833960";           // Chat ID Telegram của cậu chủ
+
+        // Hàm xử lý gửi lệnh ngầm qua API để không bị đóng Mini App
         function sendCmd(command) {
-            // Gửi tin nhắn text thẳng vào cuộc trò chuyện với Bot
-            tg.sendData(command); 
+            const loadingText = document.getElementById("loading");
+            const buttons = document.querySelectorAll(".btn");
             
-            // Đóng Mini App lại ngay sau khi bấm (Cậu chủ có thể ẩn dòng này nếu muốn giữ App mở liên tục)
-            tg.close(); 
+            // Hiển thị trạng thái đang xử lý và khóa nút bấm tạm thời
+            loadingText.style.display = "block";
+            loadingText.innerText = "⏳ Đang gửi lệnh tới hệ thống...";
+            buttons.forEach(btn => btn.disabled = true);
+
+            // Khởi tạo URL gọi API Telegram gửi tin nhắn ngầm
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(command)}`;
+            
+            // Thực hiện gửi request ngầm
+            fetch(url)
+            .then(response => {
+                if (response.ok) {
+                    loadingText.innerText = "✅ Gửi lệnh thành công!";
+                    loadingText.style.color = "#2ecc71";
+                } else {
+                    loadingText.innerText = "❌ Gửi lệnh thất bại. Vui lòng kiểm tra lại Token!";
+                    loadingText.style.color = "#e74c3c";
+                }
+            })
+            .catch(err => {
+                loadingText.innerText = "❌ Lỗi kết nối mạng: " + err;
+                loadingText.style.color = "#e74c3c";
+            })
+            .finally(() => {
+                // Mở khóa lại các nút bấm sau 1.5 giây để cậu chủ bấm tiếp lệnh khác
+                setTimeout(() => {
+                    buttons.forEach(btn => btn.disabled = false);
+                    loadingText.style.display = "none";
+                    loadingText.style.color = "#3498db"; // Trả lại màu mặc định
+                }, 1500);
+            });
         }
     </script>
 </body>
