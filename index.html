@@ -65,21 +65,28 @@
 </div>
 
 <script>
-    // Gọi khởi tạo bắt buộc
+    // Khởi tạo và ép Telegram kiểm tra trạng thái sẵn sàng
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
 
     function sendCommand(command) {
-        // Hàm nguyên bản đẩy chuỗi văn bản thuần túy lên khung chat
-        tg.sendData(command);
-        
-        document.querySelector('.status-bar').innerText = `⚡ Đã kích: ${command.toUpperCase()}`;
-        
-        // Tạo độ trễ nhỏ để Telegram kịp đẩy dòng chữ ra luồng chat trước khi đóng giao diện
-        setTimeout(() => {
-            tg.close();
-        }, 500);
+        try {
+            // Hiển thị trạng thái đang xử lý trên giao diện
+            document.querySelector('.status-bar').innerText = `⚡ Đang gửi lệnh: ${command.toUpperCase()}...`;
+            
+            // Lệnh gửi dữ liệu cốt lõi
+            tg.sendData(command);
+            
+            // Tăng thời gian chờ lên 1.5 giây để đảm bảo điện thoại kịp đẩy dữ liệu vào luồng chat trước khi đóng
+            setTimeout(() => {
+                tg.close();
+            }, 1500);
+        } catch (error) {
+            // NẾU CÓ LỖI, BẮN RA MÀN HÌNH ĐIỆN THOẠI NGAY LẬP TỨC ĐỂ THEO DÕI
+            alert("Lỗi Telegram WebApp: " + error.message);
+            document.querySelector('.status-bar').innerText = `❌ Lỗi: ${error.message}`;
+        }
     }
 </script>
 
