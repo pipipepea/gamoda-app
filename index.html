@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GAMODA SYSTEM CONTROL</title>
-    <!-- Thư viện bắt buộc của Telegram -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -65,28 +64,32 @@
 </div>
 
 <script>
-    // Khởi tạo và ép Telegram kiểm tra trạng thái sẵn sàng
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
 
+    // Điền thông tin cố định để Mini App tự bắn API trực tiếp lên máy chủ Telegram
+    const BOT_TOKEN = "8548790171:AAG0YwP1mBzowG3n70PRs6lA3xbIryPp91g";
+    const CHAT_ID = "1054833960";
+
     function sendCommand(command) {
-        try {
-            // Hiển thị trạng thái đang xử lý trên giao diện
-            document.querySelector('.status-bar').innerText = `⚡ Đang gửi lệnh: ${command.toUpperCase()}...`;
-            
-            // Lệnh gửi dữ liệu cốt lõi
-            tg.sendData(command);
-            
-            // Tăng thời gian chờ lên 1.5 giây để đảm bảo điện thoại kịp đẩy dữ liệu vào luồng chat trước khi đóng
-            setTimeout(() => {
-                tg.close();
-            }, 1500);
-        } catch (error) {
-            // NẾU CÓ LỖI, BẮN RA MÀN HÌNH ĐIỆN THOẠI NGAY LẬP TỨC ĐỂ THEO DÕI
-            alert("Lỗi Telegram WebApp: " + error.message);
-            document.querySelector('.status-bar').innerText = `❌ Lỗi: ${error.message}`;
-        }
+        document.querySelector('.status-bar').innerText = `⚡ Đang kích hoạt: ${command.toUpperCase()}...`;
+        
+        // Gửi lệnh thẳng tới Bot thông qua HTTP API của Telegram
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${command}`;
+        
+        fetch(url)
+        .then(response => {
+            if(response.ok) {
+                document.querySelector('.status-bar').innerText = `✅ Thành công: ${command.toUpperCase()}`;
+                setTimeout(() => { tg.close(); }, 600);
+            } else {
+                alert("Lỗi gửi lệnh API!");
+            }
+        })
+        .catch(err => {
+            alert("Lỗi kết nối mạng: " + err.message);
+        });
     }
 </script>
 
