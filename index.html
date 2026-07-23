@@ -73,17 +73,42 @@
     tg.ready();
     tg.expand();
 
-    function sendCommand(command) {
+    // Thông tin Token & Chat ID chính chủ của cậu chủ Phúc
+    const BOT_TOKEN = "8548790171:AAG0YwP1mBzowG3n70PRs6lA3xbIryPp91g";
+    const CHAT_ID = "1054833960";
+
+    async function sendCommand(command) {
         const statusBar = document.querySelector('.status-bar');
-        statusBar.innerText = `⚡ Đang kích hoạt: ${command.toUpperCase()}...`;
         
-        // Dùng hàm chuẩn của Telegram Mini App để đẩy dữ liệu về cho Bot (KHÔNG DÙNG FETCH API)
-        tg.sendData(command);
+        // Chuẩn hóa lệnh truyền đi thành dạng /on, /off, /onpc, /offpc
+        const textToSend = `/${command}`;
+        statusBar.innerText = `⚡ Đang gửi lệnh: ${textToSend}...`;
         
-        // Đóng Mini App ngay sau khi đẩy dữ liệu thành công
-        setTimeout(() => {
-            tg.close();
-        }, 100);
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: textToSend
+                })
+            });
+
+            if (response.ok) {
+                statusBar.innerText = `✅ Đã gửi lệnh: ${textToSend}`;
+                // Chờ 1 giây để request gửi hoàn tất vĩnh viễn trước khi khép ứng dụng
+                setTimeout(() => {
+                    tg.close();
+                }, 1000);
+            } else {
+                const errData = await response.json();
+                statusBar.innerText = `❌ Lỗi API: ${errData.description || response.status}`;
+            }
+        } catch (err) {
+            statusBar.innerText = `❌ Lỗi kết nối mạng!`;
+        }
     }
 </script>
 
