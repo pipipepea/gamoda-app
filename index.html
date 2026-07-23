@@ -36,9 +36,7 @@
             font-weight: bold;
             transition: opacity 0.2s;
         }
-        .btn:active {
-            opacity: 0.8;
-        }
+        .btn:active { opacity: 0.8; }
         .on { background-color: #2ecc71; }
         .off { background-color: #e74c3c; }
         .pc { background-color: #3498db; }
@@ -73,42 +71,17 @@
     tg.ready();
     tg.expand();
 
-    // Thông tin Token & Chat ID chính chủ của cậu chủ Phúc
-    const BOT_TOKEN = "8548790171:AAG0YwP1mBzowG3n70PRs6lA3xbIryPp91g";
-    const CHAT_ID = "1054833960";
-
-    async function sendCommand(command) {
+    function sendCommand(command) {
         const statusBar = document.querySelector('.status-bar');
+        statusBar.innerText = `⚡ Đang gửi lệnh: ${command.toUpperCase()}...`;
         
-        // Chuẩn hóa lệnh truyền đi thành dạng /on, /off, /onpc, /offpc
-        const textToSend = `/${command}`;
-        statusBar.innerText = `⚡ Đang gửi lệnh: ${textToSend}...`;
+        // Đẩy dữ liệu chuẩn từ Telegram WebApp SDK về cho Bot
+        tg.sendData(command);
         
-        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-
-        try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    chat_id: CHAT_ID,
-                    text: textToSend
-                })
-            });
-
-            if (response.ok) {
-                statusBar.innerText = `✅ Đã gửi lệnh: ${textToSend}`;
-                // Chờ 1 giây để request gửi hoàn tất vĩnh viễn trước khi khép ứng dụng
-                setTimeout(() => {
-                    tg.close();
-                }, 1000);
-            } else {
-                const errData = await response.json();
-                statusBar.innerText = `❌ Lỗi API: ${errData.description || response.status}`;
-            }
-        } catch (err) {
-            statusBar.innerText = `❌ Lỗi kết nối mạng!`;
-        }
+        // Đóng Mini App ngay lập tức
+        setTimeout(() => {
+            tg.close();
+        }, 100);
     }
 </script>
 
