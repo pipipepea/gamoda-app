@@ -73,43 +73,17 @@
     tg.ready();
     tg.expand();
 
-    // Thông tin Token và Chat ID chính chủ của cậu chủ
-    const BOT_TOKEN = "8548790171:AAG0YwP1mBzowG3n70PRs6lA3xbIryPp91g";
-    const CHAT_ID = "1054833960";
-
-    async function sendCommand(command) {
+    function sendCommand(command) {
         const statusBar = document.querySelector('.status-bar');
+        statusBar.innerText = `⚡ Đang kích hoạt: ${command.toUpperCase()}...`;
         
-        // Chuẩn hóa tên lệnh chữ thuần để đồng bộ với ESP32
-        const textToSend = command.toLowerCase();
-        statusBar.innerText = `⚡ Đang truyền lệnh: ${textToSend.toUpperCase()}...`;
+        // Dùng hàm chuẩn của Telegram Mini App để đẩy dữ liệu về cho Bot (KHÔNG DÙNG FETCH API)
+        tg.sendData(command);
         
-        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-
-        try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    chat_id: CHAT_ID,
-                    text: textToSend
-                })
-            });
-
-            if (response.ok) {
-                statusBar.innerText = `✅ Đã gửi: ${textToSend.toUpperCase()}! Đang chờ ESP thực thi...`;
-                
-                // Tăng độ trễ lên 1.2s để đảm bảo mạng không bị ngắt ngang khi Mini App đóng
-                setTimeout(() => {
-                    tg.close();
-                }, 1200);
-            } else {
-                const errData = await response.json();
-                statusBar.innerText = `❌ Lỗi Bot API: ${errData.description || response.status}`;
-            }
-        } catch (err) {
-            statusBar.innerText = `❌ Lỗi mạng, không gửi được lệnh!`;
-        }
+        // Đóng Mini App ngay sau khi đẩy dữ liệu thành công
+        setTimeout(() => {
+            tg.close();
+        }, 100);
     }
 </script>
 
