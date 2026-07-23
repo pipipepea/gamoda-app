@@ -80,9 +80,9 @@
     async function sendCommand(command) {
         const statusBar = document.querySelector('.status-bar');
         
-        // Tự động thêm dấu / vào trước chuỗi để khớp tuyệt đối với lệnh gõ tay (/on, /off, /onpc, /offpc)
-        const textToSend = `/${command}`;
-        statusBar.innerText = `⚡ Đang gửi: ${textToSend}...`;
+        // Chuẩn hóa tên lệnh chữ thuần để đồng bộ với ESP32
+        const textToSend = command.toLowerCase();
+        statusBar.innerText = `⚡ Đang truyền lệnh: ${textToSend.toUpperCase()}...`;
         
         const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
@@ -97,11 +97,12 @@
             });
 
             if (response.ok) {
-                statusBar.innerText = `✅ Đã gửi thành công: ${textToSend}`;
-                // Chờ 500ms để người dùng kịp nhìn thấy trạng thái thành công trước khi đóng Web App
+                statusBar.innerText = `✅ Đã gửi: ${textToSend.toUpperCase()}! Đang chờ ESP thực thi...`;
+                
+                // Tăng độ trễ lên 1.2s để đảm bảo mạng không bị ngắt ngang khi Mini App đóng
                 setTimeout(() => {
                     tg.close();
-                }, 500);
+                }, 1200);
             } else {
                 const errData = await response.json();
                 statusBar.innerText = `❌ Lỗi Bot API: ${errData.description || response.status}`;
