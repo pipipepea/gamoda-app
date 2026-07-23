@@ -34,6 +34,10 @@
             border-radius: 10px;
             width: 100%;
             font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .btn:active {
+            opacity: 0.8;
         }
         .on { background-color: #2ecc71; }
         .off { background-color: #e74c3c; }
@@ -41,11 +45,12 @@
         .force-off { background-color: #e67e22; }
         .status-bar {
             margin-top: 15px;
-            padding: 8px;
+            padding: 10px;
             border-radius: 6px;
             font-size: 13px;
             font-weight: bold;
             background-color: rgba(0,0,0,0.05);
+            min-height: 18px;
         }
     </style>
 </head>
@@ -72,22 +77,38 @@
     const BOT_TOKEN = "8548790171:AAG0YwP1mBzowG3n70PRs6lA3xbIryPp91g";
     const CHAT_ID = "1054833960";
 
-    function sendCommand(command) {
-        document.querySelector('.status-bar').innerText = `⚡ Đang gửi lệnh: ${command.toUpperCase()}...`;
+    async function sendCommand(command) {
+        const statusBar = document.querySelector('.status-bar');
         
-        // Sử dụng thẻ <img> hoặc Image object để tạo một request ngầm (Bypass qua mọi bộ chặn CORS của Telegram Webview)
-        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(command)}`;
+        // Tự động thêm dấu / vào trước chuỗi để khớp tuyệt đối với lệnh gõ tay (/on, /off, /onpc, /offpc)
+        const textToSend = `/${command}`;
+        statusBar.innerText = `⚡ Đang gửi: ${textToSend}...`;
         
-        const img = new Image();
-        img.src = url;
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
-        // Ép giao diện hiển thị trạng thái thành công ngay lập tức
-        document.querySelector('.status-bar').innerText = `✅ Đã kích hoạt: ${command.toUpperCase()}`;
-        
-        // Chờ 400ms để đảm bảo gói tin được đẩy đi trước khi đóng Mini App
-        setTimeout(() => {
-            tg.close();
-        }, 400);
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: textToSend
+                })
+            });
+
+            if (response.ok) {
+                statusBar.innerText = `✅ Đã gửi thành công: ${textToSend}`;
+                // Chờ 500ms để người dùng kịp nhìn thấy trạng thái thành công trước khi đóng Web App
+                setTimeout(() => {
+                    tg.close();
+                }, 500);
+            } else {
+                const errData = await response.json();
+                statusBar.innerText = `❌ Lỗi Bot API: ${errData.description || response.status}`;
+            }
+        } catch (err) {
+            statusBar.innerText = `❌ Lỗi mạng, không gửi được lệnh!`;
+        }
     }
 </script>
 
